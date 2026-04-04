@@ -1,6 +1,7 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight } from "lucide-react";
-import { collections, sampleProducts } from "@/lib/data";
+import { getCollections, getAllProducts } from "@/lib/shopify";
 
 export const metadata = {
   title: "Baby Equipment Rental — Let's go baby®",
@@ -8,7 +9,12 @@ export const metadata = {
     "Browse our full range of baby equipment for hire in Portugal. Strollers, car seats, cots, highchairs, carriers and more.",
 };
 
-export default function CollectionsPage() {
+export default async function CollectionsPage() {
+  const [collections, products] = await Promise.all([
+    getCollections(),
+    getAllProducts(),
+  ]);
+
   return (
     <>
       <section className="py-20 bg-muted">
@@ -28,7 +34,6 @@ export default function CollectionsPage() {
         </div>
       </section>
 
-      {/* Category grid */}
       <section className="py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex overflow-x-auto gap-3 pb-2 scrollbar-hide">
@@ -45,21 +50,31 @@ export default function CollectionsPage() {
         </div>
       </section>
 
-      {/* All Products */}
       <section className="pb-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {sampleProducts.map((product) => (
+            {products.map((product) => (
               <Link
                 key={product.id}
                 href={`/products/${product.slug}`}
                 className="group bg-white rounded-2xl border border-border overflow-hidden hover:shadow-lg transition-all hover:border-primary/20"
               >
-                <div className="aspect-[4/3] bg-muted relative">
+                <div className="aspect-[4/3] bg-muted relative overflow-hidden">
+                  {product.image && (
+                    <Image
+                      src={product.image}
+                      alt={product.name}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    />
+                  )}
                   <div className="absolute top-3 left-3 flex gap-2">
-                    <span className="px-2.5 py-1 bg-primary text-white text-xs font-medium rounded-full">
-                      {product.ageTag}
-                    </span>
+                    {product.ageTag && (
+                      <span className="px-2.5 py-1 bg-primary text-white text-xs font-medium rounded-full">
+                        {product.ageTag}
+                      </span>
+                    )}
                     {product.foldable && (
                       <span className="px-2.5 py-1 bg-white/90 text-foreground/70 text-xs font-medium rounded-full">
                         Foldable
@@ -69,7 +84,7 @@ export default function CollectionsPage() {
                 </div>
                 <div className="p-5">
                   <p className="text-xs text-primary font-medium uppercase tracking-wider mb-1">
-                    {collections.find((c) => c.id === product.collection)?.name}
+                    {product.collection}
                   </p>
                   <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
                     {product.name}

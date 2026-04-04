@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import Image from "next/image";
 import {
   ArrowLeft,
   Check,
@@ -14,24 +15,7 @@ import {
 import { reviews } from "@/lib/data";
 import { BookingWidget } from "@/components/BookingWidget";
 import { RegisterInterest } from "@/components/RegisterInterest";
-
-type Product = {
-  id: string;
-  name: string;
-  slug: string;
-  collection: string;
-  price: number;
-  priceUnit: string;
-  image: string;
-  ageTag: string;
-  foldable: boolean;
-  maxWeight: string;
-  rearFacing?: boolean;
-  description: string;
-  keyFeatures: string[];
-  goodToKnow: string;
-  sizeWeight: string;
-};
+import type { NormalizedProduct } from "@/lib/shopify";
 
 type Collection = {
   id: string;
@@ -44,9 +28,9 @@ export function ProductDetail({
   collection,
   recommended,
 }: {
-  product: Product;
+  product: NormalizedProduct;
   collection: Collection | undefined;
-  recommended: Product[];
+  recommended: NormalizedProduct[];
 }) {
   const [unavailableDates, setUnavailableDates] = useState<{
     start: string;
@@ -77,11 +61,23 @@ export function ProductDetail({
       <section className="py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <div className="bg-muted rounded-3xl aspect-square relative">
+            <div className="bg-muted rounded-3xl aspect-square relative overflow-hidden">
+              {product.image && (
+                <Image
+                  src={product.image}
+                  alt={product.name}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  priority
+                />
+              )}
               <div className="absolute top-4 left-4 flex gap-2">
-                <span className="px-3 py-1.5 bg-primary text-white text-xs font-medium rounded-full">
-                  {product.ageTag}
-                </span>
+                {product.ageTag && (
+                  <span className="px-3 py-1.5 bg-primary text-white text-xs font-medium rounded-full">
+                    {product.ageTag}
+                  </span>
+                )}
                 {product.foldable && (
                   <span className="px-3 py-1.5 bg-white text-foreground/70 text-xs font-medium rounded-full shadow-sm">
                     Foldable
@@ -259,10 +255,21 @@ export function ProductDetail({
                 href={`/products/${rec.slug}`}
                 className="group bg-white rounded-2xl border border-border overflow-hidden hover:shadow-lg transition-all hover:border-primary/20"
               >
-                <div className="aspect-[4/3] bg-muted relative">
-                  <span className="absolute top-3 left-3 px-2.5 py-1 bg-primary text-white text-xs font-medium rounded-full">
-                    {rec.ageTag}
-                  </span>
+                <div className="aspect-[4/3] bg-muted relative overflow-hidden">
+                  {rec.image && (
+                    <Image
+                      src={rec.image}
+                      alt={rec.name}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      sizes="33vw"
+                    />
+                  )}
+                  {rec.ageTag && (
+                    <span className="absolute top-3 left-3 px-2.5 py-1 bg-primary text-white text-xs font-medium rounded-full">
+                      {rec.ageTag}
+                    </span>
+                  )}
                 </div>
                 <div className="p-4">
                   <h3 className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors">

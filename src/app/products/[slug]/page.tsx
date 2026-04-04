@@ -1,14 +1,19 @@
-import { sampleProducts, collections } from "@/lib/data";
+import { getAllProducts, getProductByHandle, getCollections } from "@/lib/shopify";
 import { notFound } from "next/navigation";
 import { ProductDetail } from "./ProductDetail";
 
-export function generateStaticParams() {
-  return sampleProducts.map((p) => ({ slug: p.slug }));
+export async function generateStaticParams() {
+  const products = await getAllProducts();
+  return products.map((p) => ({ slug: p.slug }));
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
-  const product = sampleProducts.find((p) => p.slug === slug);
+  const product = await getProductByHandle(slug);
   if (!product) return {};
   return {
     title: `${product.name} — Rent from Let's go baby®`,
@@ -22,18 +27,26 @@ export default async function ProductPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = sampleProducts.find((p) => p.slug === slug);
+  const [product, allProducts, allCollections] = await Promise.all([
+    getProductByHandle(slug),
+    getAllProducts(),
+    getCollections(),
+  ]);
+
   if (!product) notFound();
 
-  const collection = collections.find((c) => c.id === product.collection);
-  const recommended = sampleProducts
+  const collection = allCollections.find(
+    (c) => c.slug === product.collection
+  );
+
+  const recommended = allProducts
     .filter((p) => p.id !== product.id)
     .slice(0, 3);
 
   return (
     <ProductDetail
       product={product}
-      collection={collection}
+      collection={collection ? { id: collection.id, name: collection.name, slug: collection.slug } : undefined}
       recommended={recommended}
     />
   );

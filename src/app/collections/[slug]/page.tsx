@@ -1,19 +1,25 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, ArrowLeft } from "lucide-react";
-import { collections, sampleProducts } from "@/lib/data";
+import { getCollections, getCollectionWithProducts } from "@/lib/shopify";
 import { notFound } from "next/navigation";
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const collections = await getCollections();
   return collections.map((col) => ({ slug: col.slug }));
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
-  const collection = collections.find((c) => c.slug === slug);
-  if (!collection) return {};
+  const data = await getCollectionWithProducts(slug);
+  if (!data) return {};
   return {
-    title: `${collection.name} Rental — Let's go baby®`,
-    description: collection.description,
+    title: `${data.collection.name} Rental — Let's go baby®`,
+    description: data.collection.description,
   };
 }
 
@@ -23,12 +29,11 @@ export default async function CollectionPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const collection = collections.find((c) => c.slug === slug);
-  if (!collection) notFound();
+  const data = await getCollectionWithProducts(slug);
+  if (!data) notFound();
 
-  const products = sampleProducts.filter(
-    (p) => p.collection === collection.id
-  );
+  const allCollections = await getCollections();
+  const { collection, products } = data;
 
   return (
     <>
@@ -53,12 +58,12 @@ export default async function CollectionPage({
       <section className="py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex overflow-x-auto gap-3 pb-6 scrollbar-hide">
-            {collections.map((col) => (
+            {allCollections.map((col) => (
               <Link
                 key={col.id}
                 href={`/collections/${col.slug}`}
                 className={`shrink-0 px-5 py-2.5 rounded-full text-sm font-medium transition-colors border ${
-                  col.id === collection.id
+                  col.slug === collection.slug
                     ? "bg-primary text-white border-primary"
                     : "bg-white text-foreground/70 border-border hover:bg-muted"
                 }`}
@@ -76,11 +81,22 @@ export default async function CollectionPage({
                   href={`/products/${product.slug}`}
                   className="group bg-white rounded-2xl border border-border overflow-hidden hover:shadow-lg transition-all hover:border-primary/20"
                 >
-                  <div className="aspect-[4/3] bg-muted relative">
+                  <div className="aspect-[4/3] bg-muted relative overflow-hidden">
+                    {product.image && (
+                      <Image
+                        src={product.image}
+                        alt={product.name}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      />
+                    )}
                     <div className="absolute top-3 left-3 flex gap-2">
-                      <span className="px-2.5 py-1 bg-primary text-white text-xs font-medium rounded-full">
-                        {product.ageTag}
-                      </span>
+                      {product.ageTag && (
+                        <span className="px-2.5 py-1 bg-primary text-white text-xs font-medium rounded-full">
+                          {product.ageTag}
+                        </span>
+                      )}
                       {product.foldable && (
                         <span className="px-2.5 py-1 bg-white/90 text-foreground/70 text-xs font-medium rounded-full">
                           Foldable
