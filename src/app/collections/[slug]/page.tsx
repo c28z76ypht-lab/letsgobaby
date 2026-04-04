@@ -1,0 +1,131 @@
+import Link from "next/link";
+import { ArrowRight, ArrowLeft } from "lucide-react";
+import { collections, sampleProducts } from "@/lib/data";
+import { notFound } from "next/navigation";
+
+export function generateStaticParams() {
+  return collections.map((col) => ({ slug: col.slug }));
+}
+
+export function generateMetadata({ params }: { params: { slug: string } }) {
+  const collection = collections.find((c) => c.slug === params.slug);
+  if (!collection) return {};
+  return {
+    title: `${collection.name} Rental — Let's go baby®`,
+    description: collection.description,
+  };
+}
+
+export default function CollectionPage({
+  params,
+}: {
+  params: { slug: string };
+}) {
+  const collection = collections.find((c) => c.slug === params.slug);
+  if (!collection) notFound();
+
+  const products = sampleProducts.filter(
+    (p) => p.collection === collection.id
+  );
+
+  return (
+    <>
+      <section className="py-20 bg-muted">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <Link
+            href="/collections"
+            className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary-light mb-6"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            All Collections
+          </Link>
+          <h1 className="text-4xl sm:text-5xl font-bold text-foreground">
+            {collection.name}
+          </h1>
+          <p className="mt-4 text-lg text-foreground/60">
+            {collection.description}
+          </p>
+        </div>
+      </section>
+
+      <section className="py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          {/* Category pills */}
+          <div className="flex overflow-x-auto gap-3 pb-6 scrollbar-hide">
+            {collections.map((col) => (
+              <Link
+                key={col.id}
+                href={`/collections/${col.slug}`}
+                className={`shrink-0 px-5 py-2.5 rounded-full text-sm font-medium transition-colors border ${
+                  col.id === collection.id
+                    ? "bg-primary text-white border-primary"
+                    : "bg-white text-foreground/70 border-border hover:bg-muted"
+                }`}
+              >
+                {col.name}
+              </Link>
+            ))}
+          </div>
+
+          {products.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {products.map((product) => (
+                <Link
+                  key={product.id}
+                  href={`/products/${product.slug}`}
+                  className="group bg-white rounded-2xl border border-border overflow-hidden hover:shadow-lg transition-all hover:border-primary/20"
+                >
+                  <div className="aspect-[4/3] bg-muted relative">
+                    <div className="absolute top-3 left-3 flex gap-2">
+                      <span className="px-2.5 py-1 bg-primary text-white text-xs font-medium rounded-full">
+                        {product.ageTag}
+                      </span>
+                      {product.foldable && (
+                        <span className="px-2.5 py-1 bg-white/90 text-foreground/70 text-xs font-medium rounded-full">
+                          Foldable
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="p-5">
+                    <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                      {product.name}
+                    </h3>
+                    <p className="text-sm text-foreground/50 mt-1 line-clamp-2">
+                      {product.description}
+                    </p>
+                    <div className="flex items-center justify-between mt-4">
+                      <p className="text-lg font-bold text-foreground">
+                        €{product.price}
+                        <span className="text-sm font-normal text-foreground/50">
+                          /{product.priceUnit}
+                        </span>
+                      </p>
+                      <span className="text-sm font-medium text-primary flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        View details
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-20">
+              <p className="text-foreground/40">
+                Products coming soon for this category.
+              </p>
+              <Link
+                href="/collections"
+                className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary"
+              >
+                Browse all products
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          )}
+        </div>
+      </section>
+    </>
+  );
+}
