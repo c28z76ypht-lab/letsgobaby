@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Menu, X, ChevronDown, Globe } from "lucide-react";
 import { collections } from "@/lib/data";
+import { CartButton } from "@/components/CartButton";
 
 const navLinks = [
   {
@@ -85,6 +86,7 @@ export function Header() {
               <Globe className="w-4 h-4" />
               <span>EN</span>
             </button>
+            <CartButton />
             <Link
               href="/collections"
               className="px-5 py-2.5 bg-primary text-white text-sm font-medium rounded-full hover:bg-primary-light transition-colors"
@@ -93,13 +95,16 @@ export function Header() {
             </Link>
           </div>
 
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="lg:hidden p-2 text-foreground/70"
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          <div className="lg:hidden flex items-center gap-2">
+            <CartButton />
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="p-2 text-foreground/70"
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
       </div>
 

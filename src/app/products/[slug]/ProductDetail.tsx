@@ -9,12 +9,11 @@ import {
   Info,
   Ruler,
   ChevronRight,
-  ShoppingBag,
-  Calendar,
-  MessageCircle,
   ArrowRight,
 } from "lucide-react";
 import { reviews } from "@/lib/data";
+import { BookingWidget } from "@/components/BookingWidget";
+import { RegisterInterest } from "@/components/RegisterInterest";
 
 type Product = {
   id: string;
@@ -49,9 +48,10 @@ export function ProductDetail({
   collection: Collection | undefined;
   recommended: Product[];
 }) {
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [quantity, setQuantity] = useState(1);
+  const [unavailableDates, setUnavailableDates] = useState<{
+    start: string;
+    end: string;
+  } | null>(null);
 
   return (
     <>
@@ -106,10 +106,7 @@ export function ProductDetail({
               <div className="flex items-center gap-3 mt-3">
                 <div className="flex items-center gap-0.5">
                   {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className="w-4 h-4 text-accent fill-accent"
-                    />
+                    <Star key={i} className="w-4 h-4 text-accent fill-accent" />
                   ))}
                 </div>
                 <span className="text-sm text-foreground/50">
@@ -130,69 +127,26 @@ export function ProductDetail({
                 {product.description}
               </p>
 
-              <div className="mt-8 bg-muted rounded-2xl p-6 border border-border">
-                <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-primary" />
-                  Check Availability & Book
-                </h3>
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  <div>
-                    <label className="block text-xs font-medium text-foreground/60 mb-1">
-                      Start Date
-                    </label>
-                    <input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-foreground/60 mb-1">
-                      End Date
-                    </label>
-                    <input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                    />
-                  </div>
-                </div>
-                <div className="mb-4">
-                  <label className="block text-xs font-medium text-foreground/60 mb-1">
-                    Quantity
-                  </label>
-                  <select
-                    value={quantity}
-                    onChange={(e) => setQuantity(Number(e.target.value))}
-                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                  >
-                    {[1, 2, 3, 4].map((n) => (
-                      <option key={n} value={n}>
-                        {n}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <button className="w-full py-3 bg-primary text-white font-medium rounded-full hover:bg-primary-light transition-colors flex items-center justify-center gap-2">
-                  <ShoppingBag className="w-4 h-4" />
-                  Add to Booking
-                </button>
-                <p className="text-xs text-foreground/40 text-center mt-3">
-                  No deposit required. Instant confirmation.
-                </p>
+              <div className="mt-8">
+                <BookingWidget
+                  productId={product.id}
+                  productName={product.name}
+                  productSlug={product.slug}
+                  collection={product.collection}
+                  pricePerDay={product.price}
+                  onUnavailable={(start, end) =>
+                    setUnavailableDates({ start, end })
+                  }
+                />
               </div>
 
-              <div className="mt-4 bg-accent/10 rounded-xl p-4 border border-accent/20">
-                <p className="text-sm text-foreground/70">
-                  <strong>Not available for your dates?</strong> Let us know
-                  and we&apos;ll notify you if it becomes available.
-                </p>
-                <button className="mt-2 text-sm font-medium text-primary hover:text-primary-light flex items-center gap-1">
-                  <MessageCircle className="w-3.5 h-3.5" />
-                  Register Interest
-                </button>
+              <div className="mt-4">
+                <RegisterInterest
+                  productId={product.id}
+                  productName={product.name}
+                  initialStartDate={unavailableDates?.start}
+                  initialEndDate={unavailableDates?.end}
+                />
               </div>
             </div>
           </div>
@@ -244,8 +198,7 @@ export function ProductDetail({
                 )}
                 {product.rearFacing && (
                   <p>
-                    <strong className="text-foreground">Rear-facing:</strong>{" "}
-                    Yes
+                    <strong className="text-foreground">Rear-facing:</strong> Yes
                   </p>
                 )}
               </div>
@@ -270,13 +223,13 @@ export function ProductDetail({
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {reviews.slice(0, 3).map((review, i) => (
-              <div key={i} className="bg-white rounded-xl p-5 border border-border">
+              <div
+                key={i}
+                className="bg-white rounded-xl p-5 border border-border"
+              >
                 <div className="flex items-center gap-0.5 mb-3">
                   {[...Array(5)].map((_, j) => (
-                    <Star
-                      key={j}
-                      className="w-3.5 h-3.5 text-accent fill-accent"
-                    />
+                    <Star key={j} className="w-3.5 h-3.5 text-accent fill-accent" />
                   ))}
                 </div>
                 <p className="text-sm text-foreground/60 leading-relaxed mb-3">
