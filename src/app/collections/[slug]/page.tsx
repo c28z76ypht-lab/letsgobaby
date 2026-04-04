@@ -7,8 +7,9 @@ export function generateStaticParams() {
   return collections.map((col) => ({ slug: col.slug }));
 }
 
-export function generateMetadata({ params }: { params: { slug: string } }) {
-  const collection = collections.find((c) => c.slug === params.slug);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const collection = collections.find((c) => c.slug === slug);
   if (!collection) return {};
   return {
     title: `${collection.name} Rental — Let's go baby®`,
@@ -16,12 +17,13 @@ export function generateMetadata({ params }: { params: { slug: string } }) {
   };
 }
 
-export default function CollectionPage({
+export default async function CollectionPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const collection = collections.find((c) => c.slug === params.slug);
+  const { slug } = await params;
+  const collection = collections.find((c) => c.slug === slug);
   if (!collection) notFound();
 
   const products = sampleProducts.filter(
@@ -50,7 +52,6 @@ export default function CollectionPage({
 
       <section className="py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* Category pills */}
           <div className="flex overflow-x-auto gap-3 pb-6 scrollbar-hide">
             {collections.map((col) => (
               <Link
