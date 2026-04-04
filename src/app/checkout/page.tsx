@@ -33,6 +33,7 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [orderConfirmed, setOrderConfirmed] = useState(false);
   const [orderId, setOrderId] = useState("");
+  const [invoiceUrl, setInvoiceUrl] = useState("");
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,6 +56,9 @@ export default function CheckoutPage() {
       }
 
       setOrderId(data.orderId);
+      if (data.invoiceUrl) {
+        setInvoiceUrl(data.invoiceUrl);
+      }
       setOrderConfirmed(true);
       clearCart();
     } catch {
@@ -82,12 +86,25 @@ export default function CheckoutPage() {
             You&apos;ll receive a confirmation email shortly. Our team will
             contact you via WhatsApp to coordinate delivery details.
           </p>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 px-7 py-3 bg-primary text-white font-medium rounded-full hover:bg-primary-light transition-colors"
-          >
-            Back to Home
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            {invoiceUrl && (
+              <a
+                href={invoiceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-7 py-3 bg-primary text-white font-medium rounded-full hover:bg-primary-light transition-colors"
+              >
+                <CreditCard className="w-4 h-4" />
+                Pay Now
+              </a>
+            )}
+            <Link
+              href="/"
+              className="inline-flex items-center justify-center gap-2 px-7 py-3 bg-muted text-foreground font-medium rounded-full hover:bg-muted-dark transition-colors"
+            >
+              Back to Home
+            </Link>
+          </div>
         </div>
       </section>
     );
