@@ -239,10 +239,12 @@ export async function createBooking(
 }
 
 export type BookingListItem = {
+  id: string;
   productId: string;
   startDate: string;
   endDate: string;
   quantity: number;
+  createdAt: string;
 };
 
 export async function getBookings(): Promise<BookingListItem[]> {
@@ -253,18 +255,22 @@ export async function getBookings(): Promise<BookingListItem[]> {
   const rows = await prisma.booking.findMany({
     orderBy: { createdAt: "desc" },
     select: {
+      id: true,
       productId: true,
       startDate: true,
       endDate: true,
       quantity: true,
+      createdAt: true,
     },
   });
 
   return rows.map((r) => ({
+    id: r.id,
     productId: r.productId,
     startDate: formatDateId(r.startDate),
     endDate: formatDateId(r.endDate),
     quantity: r.quantity,
+    createdAt: r.createdAt.toISOString(),
   }));
 }
 
