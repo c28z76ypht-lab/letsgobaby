@@ -16,6 +16,8 @@ import {
   Quote,
 } from "lucide-react";
 import { collections, reviews, conciergeServices } from "@/lib/data";
+import { getHomeBanner } from "@/lib/home-banner";
+import { HomeBanner } from "@/components/HomeBanner";
 
 const serviceIcons: Record<string, React.ReactNode> = {
   car: <Car className="w-6 h-6" />,
@@ -49,9 +51,12 @@ const steps = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const homeBanner = await getHomeBanner();
+
   return (
     <>
+      {homeBanner ? <HomeBanner {...homeBanner} /> : null}
       {/* Hero */}
       <section className="relative bg-gradient-to-br from-primary-dark via-primary to-primary-light text-white overflow-hidden">
         <div className="absolute inset-0 bg-[url('/images/hero-pattern.svg')] opacity-5" />

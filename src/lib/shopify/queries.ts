@@ -262,3 +262,14 @@ export const PRODUCT_BY_HANDLE_QUERY = `
     }
   }
 `;
+
+/** Shop-level banner for the headless homepage (JSON metafield, Storefront-readable). */
+export const SHOP_HOME_BANNER_QUERY = `
+  query HomeBanner {
+    shop {
+      homeBanner: metafield(namespace: "custom", key: "home_banner") {
+        value
+      }
+    }
+  }
+`;
