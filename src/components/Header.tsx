@@ -71,6 +71,12 @@ export function Header({
                     >
                       All Products
                     </Link>
+                    <Link
+                      href="/porto"
+                      className="block px-3 py-2 text-sm text-foreground/80 hover:text-primary hover:bg-muted rounded-lg transition-colors"
+                    >
+                      Porto area
+                    </Link>
                     <div className="h-px bg-border my-1" />
                     {collections.map((col) => (
                       <Link
@@ -140,6 +146,13 @@ export function Header({
                           className="block px-3 py-2 text-sm font-medium text-primary"
                         >
                           All Products
+                        </Link>
+                        <Link
+                          href="/porto"
+                          onClick={() => setMobileOpen(false)}
+                          className="block px-3 py-2 text-sm text-foreground/70 hover:text-primary"
+                        >
+                          Porto area
                         </Link>
                         {collections.map((col) => (
                           <Link

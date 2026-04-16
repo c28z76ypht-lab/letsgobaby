@@ -3,7 +3,13 @@ import { MapPin, Mail, Phone } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { SocialLinksLight } from "@/components/SocialLinks";
 
-export function Footer() {
+export type FooterEquipmentLink = { name: string; slug: string };
+
+export function Footer({
+  equipmentLinks = [],
+}: {
+  equipmentLinks?: FooterEquipmentLink[];
+}) {
   return (
     <footer className="bg-primary-dark text-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
@@ -34,24 +40,39 @@ export function Footer() {
               Equipment Rental
             </h4>
             <ul className="space-y-2.5">
-              {[
-                ["Strollers", "/collections/strollers"],
-                ["Car Seats", "/collections/car-seats"],
-                ["Cots & Beds", "/collections/cots-beds"],
-                ["Highchairs", "/collections/highchairs"],
-                ["Carriers & Slings", "/collections/carriers"],
-                ["Bath & Safety", "/collections/bath-safety"],
-                ["Toys", "/collections/toys-entertainment"],
-              ].map(([label, href]) => (
-                <li key={href}>
+              <li>
+                <Link
+                  href="/porto"
+                  className="text-sm text-white/60 hover:text-white transition-colors"
+                >
+                  Porto area rentals
+                </Link>
+              </li>
+              {(equipmentLinks.length > 0
+                ? equipmentLinks
+                : [
+                    { name: "Strollers", slug: "strollers" },
+                    { name: "Car Seats", slug: "car-seats" },
+                    { name: "Cots & Beds", slug: "cots-beds" },
+                  ]
+              ).map(({ name, slug }) => (
+                <li key={slug}>
                   <Link
-                    href={href}
+                    href={`/collections/${slug}`}
                     className="text-sm text-white/60 hover:text-white transition-colors"
                   >
-                    {label}
+                    {name}
                   </Link>
                 </li>
               ))}
+              <li>
+                <Link
+                  href="/collections"
+                  className="text-sm text-accent-light/90 hover:text-accent-light transition-colors font-medium"
+                >
+                  All equipment →
+                </Link>
+              </li>
             </ul>
           </div>
 

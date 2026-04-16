@@ -4,6 +4,7 @@ import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CartProvider } from "@/components/CartProvider";
+import { ChatScript } from "@/components/ChatScript";
 import { getCollections } from "@/lib/shopify";
 
 const dmSans = DM_Sans({
@@ -45,6 +46,11 @@ export default async function RootLayout({
     .filter((c) => c.slug !== "all-products")
     .map((c) => ({ id: c.id, name: c.name, slug: c.slug }));
 
+  const footerEquipmentLinks = headerCollections.map((c) => ({
+    name: c.name,
+    slug: c.slug,
+  }));
+
   return (
     <html
       lang="en"
@@ -54,7 +60,8 @@ export default async function RootLayout({
         <CartProvider>
           <Header collections={headerCollections} />
           <main className="flex-1">{children}</main>
-          <Footer />
+          <Footer equipmentLinks={footerEquipmentLinks} />
+          <ChatScript />
         </CartProvider>
       </body>
     </html>

@@ -16,6 +16,8 @@ import { reviews } from "@/lib/data";
 import { BookingWidget } from "@/components/BookingWidget";
 import { RegisterInterest } from "@/components/RegisterInterest";
 import { ProductCardRateHint } from "@/components/ProductCardRateHint";
+import { RecentProductTracker } from "@/components/RecentProductTracker";
+import { RecentlyViewedStrip } from "@/components/RecentlyViewedStrip";
 import type { NormalizedProduct } from "@/lib/shopify";
 
 type Collection = {
@@ -40,6 +42,11 @@ export function ProductDetail({
 
   return (
     <>
+      <RecentProductTracker
+        slug={product.slug}
+        name={product.name}
+        image={product.image ?? ""}
+      />
       <section className="py-6 bg-muted">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2 text-sm text-foreground/50">
@@ -246,6 +253,8 @@ export function ProductDetail({
           </div>
         </div>
       </section>
+
+      <RecentlyViewedStrip currentSlug={product.slug} />
 
       <section className="py-12 border-t border-border">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

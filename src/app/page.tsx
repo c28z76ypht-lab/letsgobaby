@@ -18,6 +18,7 @@ import {
 import { collections, reviews, conciergeServices } from "@/lib/data";
 import { getHomeBanner } from "@/lib/home-banner";
 import { HomeBanner } from "@/components/HomeBanner";
+import { TrustpilotEmbed } from "@/components/TrustpilotEmbed";
 
 const serviceIcons: Record<string, React.ReactNode> = {
   car: <Car className="w-6 h-6" />,
@@ -53,6 +54,8 @@ const steps = [
 
 export default async function Home() {
   const homeBanner = await getHomeBanner();
+  const trustpilotProfileUrl =
+    process.env.NEXT_PUBLIC_TRUSTPILOT_PROFILE_URL?.trim();
 
   return (
     <>
@@ -96,7 +99,18 @@ export default async function Home() {
                     <Star key={i} className="w-4 h-4 text-accent-light fill-accent-light" />
                   ))}
                 </div>
-                <span>5.0 on Trustpilot</span>
+                {trustpilotProfileUrl ? (
+                  <a
+                    href={trustpilotProfileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline-offset-2 hover:underline"
+                  >
+                    5.0 on Trustpilot
+                  </a>
+                ) : (
+                  <span>5.0 on Trustpilot</span>
+                )}
               </div>
               <span className="hidden sm:inline">•</span>
               <span className="hidden sm:inline">500+ happy families</span>
@@ -281,6 +295,10 @@ export default async function Home() {
                 </div>
               </div>
             ))}
+          </div>
+
+          <div className="mt-12 max-w-4xl mx-auto">
+            <TrustpilotEmbed styleHeight="160px" />
           </div>
         </div>
       </section>
