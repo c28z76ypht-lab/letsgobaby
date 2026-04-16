@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkAvailability, calculateRentalPrice } from "@/lib/booking/availability";
+import { isDatabaseConfigured } from "@/lib/db-env";
 import { sampleProducts } from "@/lib/data";
 import { MIN_RENTAL_DAYS, MAX_RENTAL_DAYS } from "@/lib/booking/types";
 
 export async function GET(request: NextRequest) {
+  if (!isDatabaseConfigured()) {
+    return NextResponse.json(
+      { error: "Database not configured. Set DATABASE_URL." },
+      { status: 503 }
+    );
+  }
+
   const { searchParams } = request.nextUrl;
   const productId = searchParams.get("productId");
   const startDate = searchParams.get("startDate");
@@ -52,7 +60,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const { available, minAvailable } = checkAvailability(
+  const { available, minAvailable } = await checkAvailability(
     productId,
     startDate,
     endDate,

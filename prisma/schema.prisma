@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Stock cap per catalog product id (matches `sampleProducts[].id` and future Shopify ids).
+model ProductInventory {
+  productId  String   @id @map("product_id")
+  unitsTotal Int      @map("units_total")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("product_inventory")
+}
+
+model Booking {
+  id        String   @id @default(cuid())
+  productId String   @map("product_id")
+  startDate DateTime @map("start_date") @db.Date
+  endDate   DateTime @map("end_date") @db.Date
+  quantity  Int
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([productId])
+  @@index([productId, startDate, endDate])
+  @@map("booking")
+}

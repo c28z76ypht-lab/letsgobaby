@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createBooking, getBookings } from "@/lib/booking/availability";
+import { isDatabaseConfigured } from "@/lib/db-env";
 import {
   createDraftOrder,
   isAdminConfigured,
@@ -66,6 +67,13 @@ function buildNote(
 }
 
 export async function POST(request: NextRequest) {
+  if (!isDatabaseConfigured()) {
+    return NextResponse.json(
+      { error: "Database not configured. Set DATABASE_URL." },
+      { status: 503 }
+    );
+  }
+
   const body = await request.json();
   const { items, delivery, customer } = body as {
     items: BookingItem[];
@@ -97,18 +105,34 @@ export async function POST(request: NextRequest) {
   const failedItems: string[] = [];
   const succeededItems: string[] = [];
 
-  for (const item of items) {
-    const success = createBooking(
-      item.productId,
-      item.startDate,
-      item.endDate,
-      item.quantity
-    );
-    if (success) {
-      succeededItems.push(item.productId);
-    } else {
-      failedItems.push(item.productName || item.productId);
+  try {
+    for (const item of items) {
+      const success = await createBooking(
+        item.productId,
+        item.startDate,
+        item.endDate,
+        item.quantity
+      );
+      if (success) {
+        succeededItems.push(item.productId);
+      } else {
+        failedItems.push(item.productName || item.productId);
+      }
     }
+  } catch (err) {
+    if (
+      err instanceof Error &&
+      err.message.includes("BOOKING_RETRY_EXHAUSTED")
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Could not confirm booking due to a temporary conflict. Please try again.",
+        },
+        { status: 503 }
+      );
+    }
+    throw err;
   }
 
   if (failedItems.length > 0) {
@@ -185,6 +209,21 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-  const bookings = getBookings();
-  return NextResponse.json({ bookings });
+  if (!isDatabaseConfigured()) {
+    return NextResponse.json(
+      { error: "Database not configured. Set DATABASE_URL.", bookings: [] },
+      { status: 503 }
+    );
+  }
+
+  try {
+    const bookings = await getBookings();
+    return NextResponse.json({ bookings });
+  } catch (e) {
+    console.error("getBookings:", e);
+    return NextResponse.json(
+      { error: "Failed to load bookings", bookings: [] },
+      { status: 500 }
+    );
+  }
 }

@@ -1,42 +1,127 @@
+import { Prisma } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import type { ProductAvailability } from "./types";
-import { sampleProducts } from "@/lib/data";
+import { DEFAULT_STOCK_WHEN_UNCONFIGURED, isDatabaseConfigured } from "@/lib/db-env";
 
-const STOCK_PER_PRODUCT: Record<string, number> = {};
-sampleProducts.forEach((p) => {
-  STOCK_PER_PRODUCT[p.id] = 3;
-});
-
-const bookingsDb: Array<{
-  productId: string;
-  startDate: string;
-  endDate: string;
+type BookingRow = {
+  startDate: Date;
+  endDate: Date;
   quantity: number;
-}> = [];
+};
+
+class BookingUnavailableError extends Error {
+  constructor() {
+    super("BOOKING_UNAVAILABLE");
+    this.name = "BookingUnavailableError";
+  }
+}
 
 function getDatesInRange(start: string, end: string): string[] {
   const dates: string[] = [];
-  const current = new Date(start);
-  const last = new Date(end);
-  while (current <= last) {
-    dates.push(current.toISOString().split("T")[0]);
-    current.setDate(current.getDate() + 1);
+  const [sy, sm, sd] = start.split("-").map(Number);
+  const [ey, em, ed] = end.split("-").map(Number);
+  const startT = Date.UTC(sy, sm - 1, sd);
+  const endT = Date.UTC(ey, em - 1, ed);
+  for (let t = startT; t <= endT; t += 86_400_000) {
+    dates.push(new Date(t).toISOString().slice(0, 10));
   }
   return dates;
 }
 
-export function getAvailability(
+function formatDateId(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+
+function toDateId(s: string): Date {
+  const [y, m, d] = s.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d));
+}
+
+function computeMinAvailable(
+  totalStock: number,
+  bookings: BookingRow[],
+  startDate: string,
+  endDate: string
+): number {
+  const range = getDatesInRange(startDate, endDate);
+  let minAvailable = totalStock;
+  for (const date of range) {
+    const booked = bookings
+      .filter((b) => {
+        const bs = formatDateId(b.startDate);
+        const be = formatDateId(b.endDate);
+        return bs <= date && be >= date;
+      })
+      .reduce((sum, b) => sum + b.quantity, 0);
+    const available = Math.max(0, totalStock - booked);
+    minAvailable = Math.min(minAvailable, available);
+  }
+  return minAvailable;
+}
+
+async function getTotalStock(productId: string): Promise<number> {
+  const row = await prisma.productInventory.findUnique({
+    where: { productId },
+  });
+  return row?.unitsTotal ?? DEFAULT_STOCK_WHEN_UNCONFIGURED;
+}
+
+async function getTotalStockTx(
+  tx: Prisma.TransactionClient,
+  productId: string
+): Promise<number> {
+  const row = await tx.productInventory.findUnique({
+    where: { productId },
+  });
+  return row?.unitsTotal ?? DEFAULT_STOCK_WHEN_UNCONFIGURED;
+}
+
+async function findOverlappingBookings(
+  tx: Prisma.TransactionClient,
   productId: string,
   startDate: string,
   endDate: string
-): ProductAvailability[] {
-  const totalStock = STOCK_PER_PRODUCT[productId] ?? 0;
-  const dates = getDatesInRange(startDate, endDate);
+): Promise<BookingRow[]> {
+  const start = toDateId(startDate);
+  const end = toDateId(endDate);
+  return tx.booking.findMany({
+    where: {
+      productId,
+      AND: [{ startDate: { lte: end } }, { endDate: { gte: start } }],
+    },
+    select: { startDate: true, endDate: true, quantity: true },
+  });
+}
 
+export async function getAvailability(
+  productId: string,
+  startDate: string,
+  endDate: string
+): Promise<ProductAvailability[]> {
+  if (!isDatabaseConfigured()) {
+    throw new Error("DATABASE_URL is not set");
+  }
+
+  const totalStock = await getTotalStock(productId);
+  const overlapping = await prisma.booking.findMany({
+    where: {
+      productId,
+      AND: [
+        { startDate: { lte: toDateId(endDate) } },
+        { endDate: { gte: toDateId(startDate) } },
+      ],
+    },
+    select: { startDate: true, endDate: true, quantity: true },
+  });
+
+  const dates = getDatesInRange(startDate, endDate);
   return dates.map((date) => {
-    const booked = bookingsDb
-      .filter(
-        (b) => b.productId === productId && b.startDate <= date && b.endDate >= date
-      )
+    const booked = overlapping
+      .filter((b) => {
+        const bs = formatDateId(b.startDate);
+        const be = formatDateId(b.endDate);
+        return bs <= date && be >= date;
+      })
       .reduce((sum, b) => sum + b.quantity, 0);
 
     return {
@@ -49,35 +134,138 @@ export function getAvailability(
   });
 }
 
-export function checkAvailability(
+export async function checkAvailability(
   productId: string,
   startDate: string,
   endDate: string,
   quantity: number
-): { available: boolean; minAvailable: number } {
-  const availability = getAvailability(productId, startDate, endDate);
-  const minAvailable = Math.min(...availability.map((a) => a.available));
+): Promise<{ available: boolean; minAvailable: number }> {
+  if (!isDatabaseConfigured()) {
+    throw new Error("DATABASE_URL is not set");
+  }
+
+  const totalStock = await getTotalStock(productId);
+  const overlapping = await prisma.booking.findMany({
+    where: {
+      productId,
+      AND: [
+        { startDate: { lte: toDateId(endDate) } },
+        { endDate: { gte: toDateId(startDate) } },
+      ],
+    },
+    select: { startDate: true, endDate: true, quantity: true },
+  });
+
+  const minAvailable = computeMinAvailable(
+    totalStock,
+    overlapping,
+    startDate,
+    endDate
+  );
   return {
     available: minAvailable >= quantity,
     minAvailable,
   };
 }
 
-export function createBooking(
+const SERIALIZABLE_RETRIES = 6;
+
+export async function createBooking(
   productId: string,
   startDate: string,
   endDate: string,
   quantity: number
-): boolean {
-  const { available } = checkAvailability(productId, startDate, endDate, quantity);
-  if (!available) return false;
+): Promise<boolean> {
+  if (!isDatabaseConfigured()) {
+    throw new Error("DATABASE_URL is not set");
+  }
 
-  bookingsDb.push({ productId, startDate, endDate, quantity });
-  return true;
+  const start = toDateId(startDate);
+  const end = toDateId(endDate);
+
+  for (let attempt = 0; attempt < SERIALIZABLE_RETRIES; attempt++) {
+    try {
+      await prisma.$transaction(
+        async (tx) => {
+          const totalStock = await getTotalStockTx(tx, productId);
+          const overlapping = await findOverlappingBookings(
+            tx,
+            productId,
+            startDate,
+            endDate
+          );
+          const minAvailable = computeMinAvailable(
+            totalStock,
+            overlapping,
+            startDate,
+            endDate
+          );
+          if (minAvailable < quantity) {
+            throw new BookingUnavailableError();
+          }
+          await tx.booking.create({
+            data: {
+              productId,
+              startDate: start,
+              endDate: end,
+              quantity,
+            },
+          });
+        },
+        {
+          isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+          maxWait: 5_000,
+          timeout: 10_000,
+        }
+      );
+      return true;
+    } catch (e) {
+      if (e instanceof BookingUnavailableError) {
+        return false;
+      }
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === "P2034"
+      ) {
+        continue;
+      }
+      throw e;
+    }
+  }
+
+  throw new Error(
+    "BOOKING_RETRY_EXHAUSTED: could not confirm booking; try again."
+  );
 }
 
-export function getBookings() {
-  return [...bookingsDb];
+export type BookingListItem = {
+  productId: string;
+  startDate: string;
+  endDate: string;
+  quantity: number;
+};
+
+export async function getBookings(): Promise<BookingListItem[]> {
+  if (!isDatabaseConfigured()) {
+    throw new Error("DATABASE_URL is not set");
+  }
+
+  const rows = await prisma.booking.findMany({
+    orderBy: { createdAt: "desc" },
+    select: {
+      productId: true,
+      startDate: true,
+      endDate: true,
+      quantity: true,
+    },
+  });
+
+  return rows.map((r) => ({
+    productId: r.productId,
+    startDate: formatDateId(r.startDate),
+    endDate: formatDateId(r.endDate),
+    quantity: r.quantity,
+  }));
 }
 
 export function calculateRentalPrice(
