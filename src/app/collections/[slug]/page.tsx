@@ -74,7 +74,7 @@ export default async function CollectionPage({
           </div>
 
           {products.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-5">
               {products.map((product) => (
                 <Link
                   key={product.id}
@@ -88,7 +88,7 @@ export default async function CollectionPage({
                         alt={product.name}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
                       />
                     )}
                     <div className="absolute top-3 left-3 flex gap-2">
@@ -104,17 +104,17 @@ export default async function CollectionPage({
                       )}
                     </div>
                   </div>
-                  <div className="p-5">
-                    <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                  <div className="p-4 sm:p-5">
+                    <h3 className="text-sm sm:text-base font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2">
                       {product.name}
                     </h3>
-                    <p className="text-sm text-foreground/50 mt-1 line-clamp-2">
+                    <p className="text-xs sm:text-sm text-foreground/50 mt-1 line-clamp-2">
                       {product.description}
                     </p>
-                    <div className="flex items-center justify-between mt-4">
-                      <p className="text-lg font-bold text-foreground">
+                    <div className="flex items-center justify-between mt-3 sm:mt-4 gap-2">
+                      <p className="text-base sm:text-lg font-bold text-foreground tabular-nums">
                         €{product.price}
-                        <span className="text-sm font-normal text-foreground/50">
+                        <span className="text-xs sm:text-sm font-normal text-foreground/50">
                           /{product.priceUnit}
                         </span>
                       </p>
