@@ -223,12 +223,13 @@ export function BookingWidget({
                   <Check className="w-4 h-4" />
                   <span className="font-medium">Available for your dates!</span>
                 </div>
-                <div className="text-xs text-foreground/50 space-y-1">
-                  <div className="flex justify-between">
+                <div className="text-xs text-foreground/50">
+                  <div className="flex justify-between gap-3">
                     <span>
-                      €{pricePerDay} × {result.days} days × {quantity}
+                      {result.days} days
+                      {quantity > 1 ? ` · Quantity ${quantity}` : ""}
                     </span>
-                    <span className="font-medium text-foreground">
+                    <span className="font-medium text-foreground tabular-nums">
                       €{result.subtotal}
                     </span>
                   </div>

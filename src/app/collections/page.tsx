@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { getCollections, getAllProducts } from "@/lib/shopify";
+import { ProductCardRateHint } from "@/components/ProductCardRateHint";
 
 export const metadata = {
   title: "Baby Equipment Rental — Let's go baby®",
@@ -92,14 +93,9 @@ export default async function CollectionsPage() {
                   <p className="text-xs sm:text-sm text-foreground/50 mt-1 line-clamp-2">
                     {product.description}
                   </p>
-                  <div className="flex items-center justify-between mt-3 sm:mt-4 gap-2">
-                    <p className="text-base sm:text-lg font-bold text-foreground tabular-nums">
-                      €{product.price}
-                      <span className="text-xs sm:text-sm font-normal text-foreground/50">
-                        /{product.priceUnit}
-                      </span>
-                    </p>
-                    <span className="text-sm font-medium text-primary flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-end justify-between mt-3 sm:mt-4 gap-2">
+                    <ProductCardRateHint className="min-w-0 flex-1" />
+                    <span className="text-sm font-medium text-primary flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                       View details
                       <ArrowRight className="w-3.5 h-3.5" />
                     </span>

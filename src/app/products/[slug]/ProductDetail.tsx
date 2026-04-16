@@ -15,6 +15,7 @@ import {
 import { reviews } from "@/lib/data";
 import { BookingWidget } from "@/components/BookingWidget";
 import { RegisterInterest } from "@/components/RegisterInterest";
+import { ProductCardRateHint } from "@/components/ProductCardRateHint";
 import type { NormalizedProduct } from "@/lib/shopify";
 
 type Collection = {
@@ -110,12 +111,15 @@ export function ProductDetail({
                 </span>
               </div>
 
-              <div className="mt-6">
-                <p className="text-3xl font-bold text-foreground">
-                  €{product.price}
-                  <span className="text-base font-normal text-foreground/50">
-                    /{product.priceUnit}
-                  </span>
+              <div className="mt-6 rounded-2xl border border-border bg-muted/60 px-4 py-3 sm:px-5 sm:py-4">
+                <p className="text-sm font-semibold text-foreground">
+                  How pricing works
+                </p>
+                <p className="text-sm text-foreground/60 mt-1.5 leading-relaxed">
+                  Your total depends on how many days you rent (2–28 days). Longer
+                  stays usually mean a lower cost per day. Pick your dates below —
+                  we show the amount for your trip, not a big “per day” figure on its
+                  own.
                 </p>
               </div>
 
@@ -275,12 +279,7 @@ export function ProductDetail({
                   <h3 className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors">
                     {rec.name}
                   </h3>
-                  <p className="text-sm font-bold text-foreground mt-1">
-                    €{rec.price}
-                    <span className="text-xs font-normal text-foreground/50">
-                      /{rec.priceUnit}
-                    </span>
-                  </p>
+                  <ProductCardRateHint className="mt-2" />
                 </div>
               </Link>
             ))}
