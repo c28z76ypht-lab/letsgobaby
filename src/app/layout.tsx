@@ -4,6 +4,7 @@ import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CartProvider } from "@/components/CartProvider";
+import { getCollections } from "@/lib/shopify";
 
 const dmSans = DM_Sans({
   variable: "--font-geist-sans",
@@ -34,11 +35,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const allCollections = await getCollections();
+  const headerCollections = allCollections
+    .filter((c) => c.slug !== "all-products")
+    .map((c) => ({ id: c.id, name: c.name, slug: c.slug }));
+
   return (
     <html
       lang="en"
@@ -46,7 +52,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <CartProvider>
-          <Header />
+          <Header collections={headerCollections} />
           <main className="flex-1">{children}</main>
           <Footer />
         </CartProvider>

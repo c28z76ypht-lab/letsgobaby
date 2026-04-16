@@ -3,10 +3,15 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Menu, X, ChevronDown, Globe } from "lucide-react";
-import { collections } from "@/lib/data";
 import { CartButton } from "@/components/CartButton";
 import { Logo } from "@/components/Logo";
 import { SocialLinks } from "@/components/SocialLinks";
+
+export type HeaderNavCollection = {
+  id: string;
+  name: string;
+  slug: string;
+};
 
 const navLinks = [
   {
@@ -27,7 +32,11 @@ const navLinks = [
   { label: "Contact", labelPt: "Contacto", href: "/contact" },
 ];
 
-export function Header() {
+export function Header({
+  collections,
+}: {
+  collections: HeaderNavCollection[];
+}) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collectionsOpen, setCollectionsOpen] = useState(false);
 
