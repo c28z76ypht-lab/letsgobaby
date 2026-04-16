@@ -5,6 +5,8 @@ import { useState } from "react";
 import { Menu, X, ChevronDown, Globe } from "lucide-react";
 import { collections } from "@/lib/data";
 import { CartButton } from "@/components/CartButton";
+import { Logo } from "@/components/Logo";
+import { SocialLinks } from "@/components/SocialLinks";
 
 const navLinks = [
   {
@@ -33,12 +35,7 @@ export function Header() {
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-xl font-bold tracking-tight text-primary-dark">
-              let&apos;s go baby
-              <span className="text-[10px] align-super">®</span>
-            </span>
-          </Link>
+          <Logo />
 
           <nav className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => (
@@ -82,6 +79,7 @@ export function Header() {
           </nav>
 
           <div className="hidden lg:flex items-center gap-3">
+            <SocialLinks iconClassName="w-[18px] h-[18px]" />
             <button className="flex items-center gap-1.5 px-3 py-2 text-sm text-foreground/60 hover:text-foreground transition-colors">
               <Globe className="w-4 h-4" />
               <span>EN</span>
@@ -95,7 +93,8 @@ export function Header() {
             </Link>
           </div>
 
-          <div className="lg:hidden flex items-center gap-2">
+          <div className="lg:hidden flex items-center gap-1 sm:gap-2">
+            <SocialLinks iconClassName="w-[18px] h-[18px]" />
             <CartButton />
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
@@ -157,7 +156,10 @@ export function Header() {
                 )}
               </div>
             ))}
-            <div className="pt-3 border-t border-border">
+            <div className="pt-3 border-t border-border space-y-3">
+              <div className="flex justify-center">
+                <SocialLinks iconClassName="w-6 h-6" />
+              </div>
               <Link
                 href="/collections"
                 onClick={() => setMobileOpen(false)}

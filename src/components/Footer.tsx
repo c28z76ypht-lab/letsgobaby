@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { MapPin, Mail, Phone } from "lucide-react";
+import { Logo } from "@/components/Logo";
+import { SocialLinksLight } from "@/components/SocialLinks";
 
 export function Footer() {
   return (
@@ -7,9 +9,9 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           <div>
-            <h3 className="text-lg font-bold mb-4">
-              let&apos;s go baby<span className="text-[8px] align-super">®</span>
-            </h3>
+            <div className="mb-4">
+              <Logo variant="light" />
+            </div>
             <p className="text-white/70 text-sm leading-relaxed mb-4">
               Family concierge service in Portugal. Baby equipment rental,
               transfers, tours and more — everything your family needs for a
@@ -18,6 +20,12 @@ export function Footer() {
             <div className="flex items-center gap-2 text-sm text-white/60">
               <MapPin className="w-4 h-4 shrink-0" />
               <span>Lisbon, Cascais, Sintra & Porto</span>
+            </div>
+            <div className="mt-5">
+              <p className="text-xs text-white/50 uppercase tracking-wider mb-2">
+                Follow us
+              </p>
+              <SocialLinksLight iconClassName="w-5 h-5" />
             </div>
           </div>
 
